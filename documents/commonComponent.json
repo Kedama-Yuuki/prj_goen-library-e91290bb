@@ -1,0 +1,193 @@
+{
+  "key": "commonComponent",
+  "value": [
+    {
+      "id": "COM-001",
+      "category": "レイアウト",
+      "fileName": "Header.tsx",
+      "description": "全画面共通のヘッダーコンポーネント。ロゴ、メインナビゲーション、ユーザー情報を表示",
+      "props": "{user: UserType, isLoggedIn: boolean}",
+      "screensIds": [
+        "SCR-001",
+        "SCR-002",
+        "SCR-003",
+        "SCR-004",
+        "SCR-005",
+        "SCR-006",
+        "SCR-007",
+        "SCR-008",
+        "SCR-009",
+        "SCR-010",
+        "SCR-011",
+        "SCR-012",
+        "SCR-013",
+        "SCR-014",
+        "SCR-015",
+        "SCR-016",
+        "SCR-017",
+        "SCR-018",
+        "SCR-019",
+        "SCR-020"
+      ]
+    },
+    {
+      "id": "COM-002",
+      "category": "レイアウト",
+      "fileName": "Footer.tsx",
+      "description": "全画面共通のフッターコンポーネント。著作権情報、各種リンクを表示",
+      "props": "{}",
+      "screensIds": [
+        "SCR-001",
+        "SCR-002"
+      ]
+    },
+    {
+      "id": "COM-003",
+      "category": "レイアウト",
+      "fileName": "Sidebar.tsx",
+      "description": "ログイン後の画面で使用する左サイドメニュー。機能ナビゲーションを提供",
+      "props": "{userRole: string, activeMenu: string}",
+      "screensIds": [
+        "SCR-002",
+        "SCR-003",
+        "SCR-004",
+        "SCR-005",
+        "SCR-006",
+        "SCR-007",
+        "SCR-008",
+        "SCR-009",
+        "SCR-010",
+        "SCR-011",
+        "SCR-012",
+        "SCR-013",
+        "SCR-014",
+        "SCR-015",
+        "SCR-016",
+        "SCR-017",
+        "SCR-018",
+        "SCR-019",
+        "SCR-020"
+      ]
+    },
+    {
+      "id": "COM-004",
+      "category": "認証",
+      "fileName": "LoginForm.tsx",
+      "description": "ログインフォームコンポーネント。認証情報の入力と送信を処理",
+      "props": "{onSubmit: Function, error: string}",
+      "screensIds": [
+        "SCR-001"
+      ]
+    },
+    {
+      "id": "COM-005",
+      "category": "通知",
+      "fileName": "NotificationPanel.tsx",
+      "description": "システム通知を表示するパネルコンポーネント",
+      "props": "{notifications: NotificationType[], onRead: Function}",
+      "screensIds": [
+        "SCR-002"
+      ]
+    },
+    {
+      "id": "COM-006",
+      "category": "蔵書管理",
+      "fileName": "BookForm.tsx",
+      "description": "書籍情報の入力フォームコンポーネント",
+      "props": "{book?: BookType, onSubmit: Function}",
+      "screensIds": [
+        "SCR-003"
+      ]
+    },
+    {
+      "id": "COM-007",
+      "category": "蔵書管理",
+      "fileName": "BookList.tsx",
+      "description": "書籍一覧を表示するリストコンポーネント",
+      "props": "{books: BookType[], onSort: Function}",
+      "screensIds": [
+        "SCR-004"
+      ]
+    },
+    {
+      "id": "COM-008",
+      "category": "蔵書管理",
+      "fileName": "BookDetail.tsx",
+      "description": "書籍の詳細情報を表示するコンポーネント",
+      "props": "{book: BookType, lendingHistory: LendingType[]}",
+      "screensIds": [
+        "SCR-005"
+      ]
+    },
+    {
+      "id": "COM-009",
+      "category": "検索",
+      "fileName": "SearchForm.tsx",
+      "description": "検索条件入力フォームコンポーネント",
+      "props": "{onSearch: Function, defaultValues?: SearchParamsType}",
+      "screensIds": [
+        "SCR-006"
+      ]
+    },
+    {
+      "id": "COM-010",
+      "category": "検索",
+      "fileName": "SearchResults.tsx",
+      "description": "検索結果表示コンポーネント",
+      "props": "{results: BookType[], totalCount: number}",
+      "screensIds": [
+        "SCR-006"
+      ]
+    },
+    {
+      "id": "COM-011",
+      "category": "検索",
+      "fileName": "SearchFilter.tsx",
+      "description": "検索結果のフィルタリングコンポーネント",
+      "props": "{filters: FilterType[], onFilter: Function}",
+      "screensIds": [
+        "SCR-004"
+      ]
+    },
+    {
+      "id": "COM-012",
+      "category": "レコメンド",
+      "fileName": "RecommendList.tsx",
+      "description": "AIレコメンド結果表示コンポーネント",
+      "props": "{recommendations: BookType[], category: string}",
+      "screensIds": [
+        "SCR-007"
+      ]
+    },
+    {
+      "id": "COM-013",
+      "category": "貸出管理",
+      "fileName": "RequestForm.tsx",
+      "description": "貸出リクエスト入力フォームコンポーネント",
+      "props": "{book: BookType, onSubmit: Function}",
+      "screensIds": [
+        "SCR-008"
+      ]
+    },
+    {
+      "id": "COM-014",
+      "category": "配送管理",
+      "fileName": "TrackingMap.tsx",
+      "description": "配送状況を地図上に表示するコンポーネント",
+      "props": "{trackingInfo: TrackingType, deliveryStatus: string}",
+      "screensIds": [
+        "SCR-009"
+      ]
+    },
+    {
+      "id": "COM-015",
+      "category": "決済",
+      "fileName": "BillingCalculator.tsx",
+      "description": "利用料金計算コンポーネント",
+      "props": "{lendingRecords: LendingType[], shippingRecords: ShippingType[]}",
+      "screensIds": [
+        "SCR-010"
+      ]
+    }
+  ]
+}

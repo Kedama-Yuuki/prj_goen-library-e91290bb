@@ -1,0 +1,415 @@
+{
+  "key": "screensList",
+  "value": [
+    {
+      "id": "SCR-001",
+      "category": "認証",
+      "screenName": "ログイン画面",
+      "description": "システムへのログインを行う画面",
+      "Screen components": "ログインフォーム、企業IDフィールド、パスワードフィールド、ログインボタン",
+      "operatingProcedure": "1. 企業IDを入力\n2. パスワードを入力\n3. ログインボタンをクリック",
+      "user": "全ユーザー",
+      "accessRight": "ゲスト",
+      "fileName": "login.tsx",
+      "getData": "[]",
+      "postData": "[{\"table\":\"companies\",\"items\":[\"id\",\"password\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Footer.tsx\",\"LoginForm.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-001",
+          "category": "認証",
+          "handleName": "ログイン認証処理",
+          "description": "企業アカウントの認証を行い、JWTトークンを発行する",
+          "handleProcedure": "1. 企業ID・パスワードの検証\n2. アカウント状態の確認\n3. JWTトークンの生成\n4. レスポンスの返却",
+          "fileName": "auth/login.ts",
+          "relatedScreen": "SCR-001",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react';\nimport { act } from 'react-dom/test-utils';\nimport Login from '@/pages/login';\nimport '@testing-library/jest-dom';\nimport { useRouter } from 'next/navigation';\n\njest.mock('next/navigation', () => ({\n  useRouter: jest.fn(),\n}));\n\ndescribe('ログイン画面', () => {\n  const mockPush = jest.fn();\n\n  beforeEach(() => {\n    (useRouter as jest.Mock).mockImplementation(() => ({\n      push: mockPush,\n    }));\n  });\n\n  afterEach(() => {\n    jest.clearAllMocks();\n  });\n\n  it('ログインフォームが表示される', () => {\n    render(<Login />);\n    \n    expect(screen.getByLabelText('企業ID')).toBeInTheDocument();\n    expect(screen.getByLabelText('パスワード')).toBeInTheDocument();\n    expect(screen.getByRole('button', { name: 'ログイン' })).toBeInTheDocument();\n  });\n\n  it('バリデーションエラーが表示される', async () => {\n    render(<Login />);\n    \n    const loginButton = screen.getByRole('button', { name: 'ログイン' });\n    \n    await act(async () => {\n      fireEvent.click(loginButton);\n    });\n\n    expect(screen.getByText('企業IDを入力してください')).toBeInTheDocument();\n    expect(screen.getByText('パスワードを入力してください')).toBeInTheDocument();\n  });\n\n  it('ログイン成功時にダッシュボードへ遷移する', async () => {\n    render(<Login />);\n\n    const companyIdInput = screen.getByLabelText('企業ID');\n    const passwordInput = screen.getByLabelText('パスワード');\n    const loginButton = screen.getByRole('button', { name: 'ログイン' });\n\n    fireEvent.change(companyIdInput, { target: { value: 'test-company' } });\n    fireEvent.change(passwordInput, { target: { value: 'password123' } });\n\n    global.fetch = jest.fn(() =>\n      Promise.resolve({\n        ok: true,\n        json: () => Promise.resolve({ token: 'fake-token' }),\n      })\n    ) as jest.Mock;\n\n    await act(async () => {\n      fireEvent.click(loginButton);\n    });\n\n    await waitFor(() => {\n      expect(mockPush).toHaveBeenCalledWith('/dashboard');\n    });\n  });\n\n  it('ログイン失敗時にエラーメッセージが表示される', async () => {\n    render(<Login />);\n\n    const companyIdInput = screen.getByLabelText('企業ID');\n    const passwordInput = screen.getByLabelText('パスワード');\n    const loginButton = screen.getByRole('button', { name: 'ログイン' });\n\n    fireEvent.change(companyIdInput, { target: { value: 'wrong-company' } });\n    fireEvent.change(passwordInput, { target: { value: 'wrong-password' } });\n\n    global.fetch = jest.fn(() =>\n      Promise.resolve({\n        ok: false,\n        status: 401,\n        json: () => Promise.resolve({ message: '認証に失敗しました' }),\n      })\n    ) as jest.Mock;\n\n    await act(async () => {\n      fireEvent.click(loginButton);\n    });\n\n    expect(screen.getByText('認証に失敗しました')).toBeInTheDocument();\n  });\n\n  it('パスワードの表示/非表示を切り替えできる', () => {\n    render(<Login />);\n    \n    const passwordInput = screen.getByLabelText('パスワード');\n    const toggleButton = screen.getByRole('button', { name: 'パスワードを表示' });\n\n    expect(passwordInput).toHaveAttribute('type', 'password');\n\n    fireEvent.click(toggleButton);\n    expect(passwordInput).toHaveAttribute('type', 'text');\n\n    fireEvent.click(toggleButton);\n    expect(passwordInput).toHaveAttribute('type', 'password');\n  });\n\n  it('入力フィールドの値が正しく更新される', () => {\n    render(<Login />);\n    \n    const companyIdInput = screen.getByLabelText('企業ID');\n    const passwordInput = screen.getByLabelText('パスワード');\n\n    fireEvent.change(companyIdInput, { target: { value: 'test-company' } });\n    fireEvent.change(passwordInput, { target: { value: 'test-password' } });\n\n    expect(companyIdInput).toHaveValue('test-company');\n    expect(passwordInput).toHaveValue('test-password');\n  });\n\n  it('ログイン中の状態が表示される', async () => {\n    render(<Login />);\n\n    const companyIdInput = screen.getByLabelText('企業ID');\n    const passwordInput = screen.getByLabelText('パスワード');\n    const loginButton = screen.getByRole('button', { name: 'ログイン' });\n\n    fireEvent.change(companyIdInput, { target: { value: 'test-company' } });\n    fireEvent.change(passwordInput, { target: { value: 'password123' } });\n\n    global.fetch = jest.fn(() => \n      new Promise(resolve => setTimeout(() => resolve({\n        ok: true,\n        json: () => Promise.resolve({ token: 'fake-token' }),\n      }), 100))\n    ) as jest.Mock;\n\n    fireEvent.click(loginButton);\n\n    expect(screen.getByText('ログイン中...')).toBeInTheDocument();\n  });\n});\n```"
+        }
+      ]
+    },
+    {
+      "id": "SCR-002",
+      "category": "蔵書管理",
+      "screenName": "ホーム画面",
+      "description": "ログイン後のメインダッシュボード",
+      "Screen components": "メニュー一覧、統計情報、お知らせ、クイックアクセスボタン",
+      "operatingProcedure": "1. 各機能へのメニューを選択\n2. 統計情報の確認\n3. お知らせの確認",
+      "user": "全ユーザー",
+      "accessRight": "ログインユーザー",
+      "fileName": "dashboard.tsx",
+      "getData": "[{\"table\":\"books\",\"items\":[\"status\"]},{\"table\":\"lending_records\",\"items\":[\"status\"]}]",
+      "postData": "[]",
+      "commonComponent": "[\"Header.tsx\",\"Footer.tsx\",\"Sidebar.tsx\",\"NotificationPanel.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-003",
+      "category": "蔵書管理",
+      "screenName": "蔵書登録画面",
+      "description": "新規蔵書の登録を行う画面",
+      "Screen components": "書籍情報入力フォーム、ISBNスキャナー連携ボタン、プレビュー表示、登録ボタン",
+      "operatingProcedure": "1. 書籍基本情報を入力\n2. 貸出条件を設定\n3. プレビュー確認\n4. 登録実行",
+      "user": "大企業（蔵書提供者）",
+      "accessRight": "ログインユーザー",
+      "fileName": "books/register.tsx",
+      "getData": "[]",
+      "postData": "[{\"table\":\"books\",\"items\":[\"company_id\",\"isbn\",\"title\",\"author\",\"publisher\",\"lending_conditions\",\"status\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"BookForm.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-004",
+      "category": "蔵書管理",
+      "screenName": "蔵書一覧画面",
+      "description": "登録された蔵書の一覧を表示する画面",
+      "Screen components": "蔵書リスト、検索フィルター、ソート機能、ページネーション",
+      "operatingProcedure": "1. 検索条件設定\n2. 一覧表示の確認\n3. 詳細画面への遷移",
+      "user": "全ユーザー",
+      "accessRight": "ログインユーザー",
+      "fileName": "books/index.tsx",
+      "getData": "[{\"table\":\"books\",\"items\":[\"*\"]}]",
+      "postData": "[]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"BookList.tsx\",\"SearchFilter.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-005",
+      "category": "蔵書管理",
+      "screenName": "蔵書詳細画面",
+      "description": "個別の蔵書詳細情報を表示する画面",
+      "Screen components": "書籍詳細情報、貸出履歴、状態表示、操作ボタン群",
+      "operatingProcedure": "1. 詳細情報の確認\n2. 貸出履歴の確認\n3. 各種操作の実行",
+      "user": "全ユーザー",
+      "accessRight": "ログインユーザー",
+      "fileName": "books/[id].tsx",
+      "getData": "[{\"table\":\"books\",\"items\":[\"*\"]},{\"table\":\"lending_records\",\"items\":[\"*\"]}]",
+      "postData": "[]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"BookDetail.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-006",
+      "category": "検索・マッチング",
+      "screenName": "蔵書検索画面",
+      "description": "条件を指定して蔵書を検索する画面",
+      "Screen components": "検索条件入力フォーム、詳細検索オプション、検索結果表示エリア",
+      "operatingProcedure": "1. 検索条件入力\n2. 検索実行\n3. 結果の確認と絞り込み",
+      "user": "全ユーザー",
+      "accessRight": "ログインユーザー",
+      "fileName": "search.tsx",
+      "getData": "[{\"table\":\"books\",\"items\":[\"*\"]}]",
+      "postData": "[]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"SearchForm.tsx\",\"SearchResults.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-007",
+      "category": "検索・マッチング",
+      "screenName": "AIレコメンド画面",
+      "description": "AIによる蔵書レコメンドを表示する画面",
+      "Screen components": "レコメンド一覧、カテゴリー別表示、詳細リンク",
+      "operatingProcedure": "1. レコメンド一覧の確認\n2. カテゴリー切り替え\n3. 詳細画面への遷移",
+      "user": "中小企業（利用者）、教育・研究機関",
+      "accessRight": "ログインユーザー",
+      "fileName": "recommend.tsx",
+      "getData": "[{\"table\":\"books\",\"items\":[\"*\"]},{\"table\":\"lending_records\",\"items\":[\"*\"]}]",
+      "postData": "[]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"RecommendList.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-002",
+          "category": "検索・マッチング",
+          "handleName": "AIレコメンド処理",
+          "description": "利用履歴と企業情報を基にAIによる蔵書レコメンドを生成",
+          "handleProcedure": "1. 利用履歴データの取得\n2. 企業情報の分析\n3. AIモデルによる推論処理\n4. レコメンド結果の生成",
+          "fileName": "recommend/generate.ts",
+          "relatedScreen": "SCR-007",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react';\nimport Recommend from '@/pages/recommend';\nimport '@testing-library/jest-dom';\nimport { jest } from '@jest/globals';\nimport axios from 'axios';\n\n// モックコンポーネント\njest.mock('@/components/Header', () => {\n  return function MockHeader() {\n    return <div data-testid=\"mock-header\">Header</div>;\n  };\n});\n\njest.mock('@/components/Sidebar', () => {\n  return function MockSidebar() {\n    return <div data-testid=\"mock-sidebar\">Sidebar</div>;\n  };\n});\n\njest.mock('@/components/RecommendList', () => {\n  return function MockRecommendList({ recommendations, category }) {\n    return (\n      <div data-testid=\"mock-recommend-list\">\n        カテゴリー: {category}\n        {recommendations.map((book) => (\n          <div key={book.id}>{book.title}</div>\n        ))}\n      </div>\n    );\n  };\n});\n\nconst mockRecommendations = {\n  business: [\n    { id: 1, title: \"ビジネス書1\" },\n    { id: 2, title: \"ビジネス書2\" }\n  ],\n  technology: [\n    { id: 3, title: \"技術書1\" },\n    { id: 4, title: \"技術書2\" }\n  ]\n};\n\ndescribe('Recommend画面', () => {\n  beforeEach(() => {\n    axios.get.mockResolvedValue({ data: mockRecommendations });\n  });\n\n  test('初期表示時にレコメンドデータを取得して表示する', async () => {\n    render(<Recommend />);\n\n    expect(screen.getByTestId('mock-header')).toBeInTheDocument();\n    expect(screen.getByTestId('mock-sidebar')).toBeInTheDocument();\n\n    await waitFor(() => {\n      expect(axios.get).toHaveBeenCalledWith('/api/recommend');\n      expect(screen.getByTestId('mock-recommend-list')).toBeInTheDocument();\n    });\n  });\n\n  test('カテゴリー切り替えが正常に動作する', async () => {\n    render(<Recommend />);\n\n    await waitFor(() => {\n      expect(screen.getByTestId('mock-recommend-list')).toBeInTheDocument();\n    });\n\n    const technologyTab = screen.getByRole('tab', { name: '技術書' });\n    fireEvent.click(technologyTab);\n\n    await waitFor(() => {\n      expect(screen.getByText('技術書1')).toBeInTheDocument();\n      expect(screen.getByText('技術書2')).toBeInTheDocument();\n    });\n  });\n\n  test('エラー発生時にエラーメッセージを表示する', async () => {\n    axios.get.mockRejectedValueOnce(new Error('APIエラー'));\n    \n    render(<Recommend />);\n\n    await waitFor(() => {\n      expect(screen.getByText('レコメンドデータの取得に失敗しました')).toBeInTheDocument();\n    });\n  });\n\n  test('ローディング状態が表示される', () => {\n    render(<Recommend />);\n    expect(screen.getByText('読み込み中...')).toBeInTheDocument();\n  });\n\n  test('書籍詳細へのリンクが機能する', async () => {\n    render(<Recommend />);\n\n    await waitFor(() => {\n      expect(screen.getByTestId('mock-recommend-list')).toBeInTheDocument();\n    });\n\n    const bookLink = screen.getByText('ビジネス書1');\n    fireEvent.click(bookLink);\n\n    expect(global.mockNextRouter.push).toHaveBeenCalledWith('/books/1');\n  });\n});\n```"
+        }
+      ]
+    },
+    {
+      "id": "SCR-008",
+      "category": "検索・マッチング",
+      "screenName": "貸出リクエスト画面",
+      "description": "蔵書の貸出をリクエストする画面",
+      "Screen components": "リクエストフォーム、利用条件確認、配送先入力フォーム",
+      "operatingProcedure": "1. 利用目的入力\n2. 利用期間選択\n3. 配送先情報入力\n4. リクエスト送信",
+      "user": "中小企業（利用者）、教育・研究機関",
+      "accessRight": "ログインユーザー",
+      "fileName": "books/[id]/request.tsx",
+      "getData": "[{\"table\":\"books\",\"items\":[\"*\"]}]",
+      "postData": "[{\"table\":\"lending_records\",\"items\":[\"*\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"RequestForm.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-009",
+      "category": "配送管理",
+      "screenName": "配送状況確認画面",
+      "description": "配送状況をリアルタイムで確認する画面",
+      "Screen components": "配送状況マップ、追跡情報一覧、ステータス表示",
+      "operatingProcedure": "1. 配送追跡番号確認\n2. 現在位置確認\n3. 到着予定時刻確認",
+      "user": "全ユーザー",
+      "accessRight": "ログインユーザー",
+      "fileName": "shipping/tracking/[id].tsx",
+      "getData": "[{\"table\":\"shipping_records\",\"items\":[\"*\"]}]",
+      "postData": "[]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"TrackingMap.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-010",
+      "category": "決済システム",
+      "screenName": "料金計算画面",
+      "description": "利用料金の計算と明細を表示する画面",
+      "Screen components": "料金計算フォーム、明細表示、合計金額表示",
+      "operatingProcedure": "1. 利用期間選択\n2. サービス項目選択\n3. 料金計算実行\n4. 明細確認",
+      "user": "システム管理者",
+      "accessRight": "ログインユーザー",
+      "fileName": "billing/calculate.tsx",
+      "getData": "[{\"table\":\"lending_records\",\"items\":[\"*\"]},{\"table\":\"shipping_records\",\"items\":[\"*\"]}]",
+      "postData": "[{\"table\":\"billing_records\",\"items\":[\"*\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"BillingCalculator.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-011",
+      "category": "蔵書管理",
+      "screenName": "蔵書点検画面",
+      "description": "定期的な蔵書点検を実施する画面",
+      "Screen components": "点検リスト、バーコードスキャナー連携、状態入力フォーム",
+      "operatingProcedure": "1. 点検対象選択\n2. バーコードスキャン\n3. 状態確認入力\n4. 点検結果保存",
+      "user": "カスタマーサポート担当者",
+      "accessRight": "ログインユーザー",
+      "fileName": "books/inspection.tsx",
+      "getData": "[{\"table\":\"books\",\"items\":[\"*\"]}]",
+      "postData": "[{\"table\":\"books\",\"items\":[\"status\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"InspectionForm.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-012",
+      "category": "配送管理",
+      "screenName": "返却通知一覧画面",
+      "description": "返却期限が近い貸出の一覧と通知管理を行う画面",
+      "Screen components": "返却期限一覧、通知設定、一括処理機能",
+      "operatingProcedure": "1. 返却期限確認\n2. 通知設定変更\n3. 返却催促送信",
+      "user": "システム管理者",
+      "accessRight": "ログインユーザー",
+      "fileName": "returns/notifications.tsx",
+      "getData": "[{\"table\":\"lending_records\",\"items\":[\"*\"]}]",
+      "postData": "[{\"table\":\"lending_records\",\"items\":[\"status\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"NotificationList.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-008",
+          "category": "配送管理",
+          "handleName": "返却期限通知処理",
+          "description": "返却期限が近い貸出に対して自動で通知を送信",
+          "handleProcedure": "1. 返却期限チェック\n2. 通知対象の抽出\n3. 通知テンプレート適用\n4. メール送信実行",
+          "fileName": "returns/notify.ts",
+          "relatedScreen": "SCR-012",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react';\nimport { jest } from '@jest/globals';\nimport '@testing-library/jest-dom';\nimport ReturnNotifications from '@/pages/returns/notifications';\nimport { useRouter } from 'next/navigation';\nimport axios from 'axios';\n\n// モックの設定\njest.mock('next/navigation');\njest.mock('axios');\n\nconst mockLendingRecords = [\n  {\n    id: '1',\n    bookId: 'book-1',\n    borrowerId: 'user-1',\n    lendingDate: '2024-01-01',\n    returnDueDate: '2024-02-01',\n    status: '貸出中',\n    bookTitle: 'テスト書籍1',\n    borrowerName: 'テストユーザー1'\n  },\n  {\n    id: '2', \n    bookId: 'book-2',\n    borrowerId: 'user-2',\n    lendingDate: '2024-01-15',\n    returnDueDate: '2024-02-15',\n    status: '貸出中',\n    bookTitle: 'テスト書籍2',\n    borrowerName: 'テストユーザー2'\n  }\n];\n\ndescribe('ReturnNotifications', () => {\n  beforeEach(() => {\n    (axios.get as jest.Mock).mockResolvedValue({ \n      data: { lendingRecords: mockLendingRecords }\n    });\n  });\n\n  test('画面の初期表示が正しく行われる', async () => {\n    render(<ReturnNotifications />);\n    \n    await waitFor(() => {\n      expect(screen.getByText('返却通知一覧')).toBeInTheDocument();\n      expect(screen.getByText('テスト書籍1')).toBeInTheDocument();\n      expect(screen.getByText('テスト書籍2')).toBeInTheDocument();\n    });\n  });\n\n  test('通知設定の変更が正しく動作する', async () => {\n    render(<ReturnNotifications />);\n\n    const settingButton = await screen.findByText('通知設定');\n    fireEvent.click(settingButton);\n\n    const emailToggle = screen.getByRole('checkbox', { name: 'メール通知' });\n    fireEvent.click(emailToggle);\n\n    expect(axios.post).toHaveBeenCalledWith('/api/notifications/settings', {\n      emailEnabled: true\n    });\n  });\n\n  test('返却催促送信が正しく動作する', async () => {\n    render(<ReturnNotifications />);\n\n    const sendButton = await screen.findByText('催促送信');\n    fireEvent.click(sendButton);\n    \n    const confirmButton = screen.getByText('送信する');\n    fireEvent.click(confirmButton);\n\n    expect(axios.post).toHaveBeenCalledWith('/api/returns/remind', {\n      lendingIds: ['1', '2']\n    });\n  });\n\n  test('一括処理機能が正しく動作する', async () => {\n    render(<ReturnNotifications />);\n\n    const checkboxes = await screen.findAllByRole('checkbox');\n    fireEvent.click(checkboxes[0]);\n    fireEvent.click(checkboxes[1]);\n\n    const bulkButton = screen.getByText('一括処理');\n    fireEvent.click(bulkButton);\n\n    const processButton = screen.getByText('処理実行');\n    fireEvent.click(processButton);\n\n    expect(axios.post).toHaveBeenCalledWith('/api/returns/bulk', {\n      lendingIds: ['1', '2'],\n      action: 'remind'\n    });\n  });\n\n  test('エラー時のエラーメッセージ表示', async () => {\n    (axios.get as jest.Mock).mockRejectedValue(new Error('API Error'));\n    \n    render(<ReturnNotifications />);\n\n    await waitFor(() => {\n      expect(screen.getByText('データの取得に失敗しました')).toBeInTheDocument();\n    });\n  });\n\n  test('返却期限でのソートが正しく動作する', async () => {\n    render(<ReturnNotifications />);\n\n    const sortButton = await screen.findByText('返却期限');\n    fireEvent.click(sortButton);\n\n    await waitFor(() => {\n      const items = screen.getAllByRole('row');\n      expect(items[1]).toHaveTextContent('テスト書籍1');\n      expect(items[2]).toHaveTextContent('テスト書籍2');\n    });\n  });\n\n  test('検索フィルターが正しく動作する', async () => {\n    render(<ReturnNotifications />);\n\n    const searchInput = screen.getByPlaceholderText('書籍名で検索');\n    fireEvent.change(searchInput, { target: { value: 'テスト書籍1' } });\n\n    await waitFor(() => {\n      expect(screen.getByText('テスト書籍1')).toBeInTheDocument();\n      expect(screen.queryByText('テスト書籍2')).not.toBeInTheDocument();\n    });\n  });\n});\n```"
+        }
+      ]
+    },
+    {
+      "id": "SCR-013",
+      "category": "決済システム",
+      "screenName": "請求書管理画面",
+      "description": "請求書の発行と管理を行う画面",
+      "Screen components": "請求書一覧、発行フォーム、ステータス管理",
+      "operatingProcedure": "1. 請求対象選択\n2. 請求書発行\n3. 送付状態管理",
+      "user": "システム管理者",
+      "accessRight": "ログインユーザー",
+      "fileName": "billing/invoices.tsx",
+      "getData": "[{\"table\":\"billing_records\",\"items\":[\"*\"]}]",
+      "postData": "[{\"table\":\"billing_records\",\"items\":[\"status\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"InvoiceManager.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-007",
+          "category": "決済システム",
+          "handleName": "月次請求書生成処理",
+          "description": "月末の利用実績を集計し、請求書を自動生成",
+          "handleProcedure": "1. 月間利用データの集計\n2. 料金計算処理\n3. PDF請求書の生成\n4. 通知メールの送信",
+          "fileName": "billing/generate-invoice.ts",
+          "relatedScreen": "SCR-013",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react';\nimport { jest } from '@jest/globals';\nimport '@testing-library/jest-dom';\nimport userEvent from '@testing-library/user-event';\nimport InvoicePage from '@/pages/billing/invoices';\nimport { useRouter } from 'next/navigation';\n\njest.mock('next/navigation', () => ({\n  useRouter: jest.fn(),\n}));\n\nconst mockInvoices = [\n  {\n    id: '1',\n    companyId: 'company-1',\n    billingMonth: '2024-01',\n    amount: 50000,\n    status: '未払い',\n    details: {\n      利用料: 45000,\n      配送料: 5000\n    }\n  },\n  {\n    id: '2', \n    companyId: 'company-2',\n    billingMonth: '2024-01',\n    amount: 30000,\n    status: '支払済',\n    details: {\n      利用料: 28000,\n      配送料: 2000\n    }\n  }\n];\n\nconst mockGenerateInvoice = jest.fn();\nconst mockUpdateStatus = jest.fn();\n\ndescribe('請求書管理画面', () => {\n  beforeEach(() => {\n    jest.clearAllMocks();\n    global.fetch = jest.fn(() =>\n      Promise.resolve({\n        ok: true,\n        json: () => Promise.resolve(mockInvoices),\n      })\n    ) as jest.Mock;\n    \n    (useRouter as jest.Mock).mockImplementation(() => ({\n      push: jest.fn(),\n    }));\n  });\n\n  test('請求書一覧が正しく表示される', async () => {\n    render(<InvoicePage />);\n    \n    await waitFor(() => {\n      expect(screen.getByText('¥50,000')).toBeInTheDocument();\n      expect(screen.getByText('¥30,000')).toBeInTheDocument();\n    });\n    \n    expect(screen.getByText('未払い')).toBeInTheDocument();\n    expect(screen.getByText('支払済')).toBeInTheDocument();\n  });\n\n  test('請求書を新規発行できる', async () => {\n    render(<InvoicePage />);\n    \n    const generateButton = screen.getByText('請求書発行');\n    await userEvent.click(generateButton);\n    \n    const monthSelect = screen.getByLabelText('請求対象月');\n    await userEvent.selectOptions(monthSelect, '2024-01');\n    \n    const submitButton = screen.getByText('発行する');\n    await userEvent.click(submitButton);\n    \n    expect(mockGenerateInvoice).toHaveBeenCalledWith({\n      billingMonth: '2024-01'\n    });\n  });\n\n  test('請求書のステータスを更新できる', async () => {\n    render(<InvoicePage />);\n    \n    await waitFor(() => {\n      const statusButton = screen.getAllByText('未払い')[0];\n      fireEvent.click(statusButton);\n    });\n    \n    const paidOption = screen.getByText('支払済にする');\n    await userEvent.click(paidOption);\n    \n    expect(mockUpdateStatus).toHaveBeenCalledWith('1', '支払済');\n  });\n\n  test('請求書詳細を表示できる', async () => {\n    render(<InvoicePage />);\n    \n    const firstInvoice = await screen.findByText('¥50,000');\n    await userEvent.click(firstInvoice);\n    \n    expect(screen.getByText('利用料: ¥45,000')).toBeInTheDocument();\n    expect(screen.getByText('配送料: ¥5,000')).toBeInTheDocument();\n  });\n\n  test('エラー時にエラーメッセージが表示される', async () => {\n    global.fetch = jest.fn(() => \n      Promise.reject(new Error('データの取得に失敗しました'))\n    ) as jest.Mock;\n\n    render(<InvoicePage />);\n\n    await waitFor(() => {\n      expect(screen.getByText('エラーが発生しました')).toBeInTheDocument();\n    });\n  });\n\n  test('請求書の検索ができる', async () => {\n    render(<InvoicePage />);\n\n    const searchInput = screen.getByPlaceholderText('企業名で検索');\n    await userEvent.type(searchInput, 'company-1');\n\n    await waitFor(() => {\n      expect(screen.getByText('¥50,000')).toBeInTheDocument();\n      expect(screen.queryByText('¥30,000')).not.toBeInTheDocument();\n    });\n  });\n\n  test('請求書のソートができる', async () => {\n    render(<InvoicePage />);\n\n    const sortButton = screen.getByText('金額');\n    await userEvent.click(sortButton);\n\n    const invoiceAmounts = screen.getAllByTestId('invoice-amount');\n    expect(invoiceAmounts[0]).toHaveTextContent('¥30,000');\n    expect(invoiceAmounts[1]).toHaveTextContent('¥50,000');\n  });\n\n  test('請求書のフィルタリングができる', async () => {\n    render(<InvoicePage />);\n\n    const filterButton = screen.getByText('ステータス');\n    await userEvent.click(filterButton);\n\n    const unpaidFilter = screen.getByLabelText('未払いのみ表示');\n    await userEvent.click(unpaidFilter);\n\n    expect(screen.getByText('¥50,000')).toBeInTheDocument();\n    expect(screen.queryByText('¥30,000')).not.toBeInTheDocument();\n  });\n\n  test('PDFダウンロードができる', async () => {\n    const mockBlob = new Blob(['dummy pdf content'], { type: 'application/pdf' });\n    global.URL.createObjectURL = jest.fn();\n    \n    render(<InvoicePage />);\n\n    const downloadButton = screen.getAllByText('PDFダウンロード')[0];\n    await userEvent.click(downloadButton);\n\n    expect(global.URL.createObjectURL).toHaveBeenCalledWith(mockBlob);\n  });\n\n  test('一括処理が実行できる', async () => {\n    render(<InvoicePage />);\n\n    const checkboxes = screen.getAllByRole('checkbox');\n    await userEvent.click(checkboxes[1]);\n    await userEvent.click(checkboxes[2]);\n\n    const bulkActionButton = screen.getByText('一括処理');\n    await userEvent.click(bulkActionButton);\n\n    const sendMailButton = screen.getByText('メール送信');\n    await userEvent.click(sendMailButton);\n\n    expect(screen.getByText('2件のメールを送信しました')).toBeInTheDocument();\n  });\n});\n```"
+        }
+      ]
+    },
+    {
+      "id": "SCR-014",
+      "category": "蔵書管理",
+      "screenName": "破損・紛失報告画面",
+      "description": "蔵書の破損や紛失を報告する画面",
+      "Screen components": "報告フォーム、状態選択、写真アップロード機能",
+      "operatingProcedure": "1. 対象書籍選択\n2. 状態詳細入力\n3. 写真添付\n4. 報告送信",
+      "user": "全ユーザー",
+      "accessRight": "ログインユーザー",
+      "fileName": "books/damage-report.tsx",
+      "getData": "[{\"table\":\"books\",\"items\":[\"*\"]}]",
+      "postData": "[{\"table\":\"books\",\"items\":[\"status\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"DamageReportForm.tsx\"]",
+      "relatedBackendHandles": []
+    },
+    {
+      "id": "SCR-015",
+      "category": "検索・マッチング",
+      "screenName": "利用統計分析画面",
+      "description": "蔵書利用状況の統計分析を表示する画面",
+      "Screen components": "統計グラフ、分析レポート、フィルター機能",
+      "operatingProcedure": "1. 分析期間設定\n2. 統計データ確認\n3. レポート出力",
+      "user": "システム管理者",
+      "accessRight": "ログインユーザー",
+      "fileName": "analytics/statistics.tsx",
+      "getData": "[{\"table\":\"lending_records\",\"items\":[\"*\"]},{\"table\":\"books\",\"items\":[\"*\"]}]",
+      "postData": "[]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"AnalyticsChart.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-009",
+          "category": "検索・マッチング",
+          "handleName": "利用統計分析処理",
+          "description": "蔵書利用データの統計分析とレポート生成",
+          "handleProcedure": "1. 利用データの集計\n2. 統計分析の実行\n3. グラフデータの生成\n4. レポートの作成",
+          "fileName": "analytics/generate-report.ts",
+          "relatedScreen": "SCR-015",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react'\nimport { act } from 'react-dom/test-utils'\nimport Statistics from '@/pages/analytics/statistics'\nimport '@testing-library/jest-dom'\nimport { useRouter } from 'next/navigation'\n\n// モックデータ\nconst mockAnalyticsData = {\n  lendingStats: {\n    totalLending: 150,\n    averageDuration: 14,\n    topGenres: ['ビジネス', '技術', '自己啓発'],\n    monthlyTrends: [\n      { month: '2024-01', count: 45 },\n      { month: '2024-02', count: 52 },\n      { month: '2024-03', count: 53 }\n    ]\n  },\n  bookStats: {\n    totalBooks: 1000,\n    activeBooks: 800,\n    popularBooks: [\n      { id: 1, title: '人工知能入門', lendCount: 25 },\n      { id: 2, title: 'リーダーシップ論', lendCount: 20 },\n      { id: 3, title: 'プロジェクトマネジメント', lendCount: 18 }\n    ]\n  }\n}\n\n// APIモック\njest.mock('axios', () => ({\n  get: jest.fn(() => Promise.resolve({ data: mockAnalyticsData }))\n}))\n\ndescribe('Statistics画面', () => {\n  beforeEach(() => {\n    // ルーターモックのリセット\n    const mockRouter = useRouter as jest.Mock\n    mockRouter.mockImplementation(() => ({\n      push: jest.fn(),\n      replace: jest.fn(),\n      prefetch: jest.fn()\n    }))\n  })\n\n  it('統計画面が正しくレンダリングされる', async () => {\n    await act(async () => {\n      render(<Statistics />)\n    })\n\n    expect(screen.getByText('利用統計分析')).toBeInTheDocument()\n    expect(screen.getByText('分析期間設定')).toBeInTheDocument()\n    expect(screen.getByRole('button', { name: 'レポート出力' })).toBeInTheDocument()\n  })\n\n  it('期間フィルターが機能する', async () => {\n    await act(async () => {\n      render(<Statistics />)\n    })\n\n    const startDateInput = screen.getByLabelText('開始日')\n    const endDateInput = screen.getByLabelText('終了日')\n\n    fireEvent.change(startDateInput, { target: { value: '2024-01-01' } })\n    fireEvent.change(endDateInput, { target: { value: '2024-03-31' } })\n\n    expect(startDateInput).toHaveValue('2024-01-01')\n    expect(endDateInput).toHaveValue('2024-03-31')\n  })\n\n  it('統計データが正しく表示される', async () => {\n    await act(async () => {\n      render(<Statistics />)\n    })\n\n    await waitFor(() => {\n      expect(screen.getByText('総貸出数: 150件')).toBeInTheDocument()\n      expect(screen.getByText('平均貸出期間: 14日')).toBeInTheDocument()\n      expect(screen.getByText('登録書籍数: 1000冊')).toBeInTheDocument()\n    })\n  })\n\n  it('レポート出力ボタンのクリックイベントが機能する', async () => {\n    const mockExportReport = jest.fn()\n\n    await act(async () => {\n      render(<Statistics exportReport={mockExportReport} />)\n    })\n\n    const exportButton = screen.getByRole('button', { name: 'レポート出力' })\n    fireEvent.click(exportButton)\n\n    expect(mockExportReport).toHaveBeenCalledTimes(1)\n  })\n\n  it('グラフコンポーネントが正しくレンダリングされる', async () => {\n    await act(async () => {\n      render(<Statistics />)\n    })\n\n    await waitFor(() => {\n      expect(screen.getByTestId('monthly-trend-chart')).toBeInTheDocument()\n      expect(screen.getByTestId('genre-distribution-chart')).toBeInTheDocument()\n      expect(screen.getByTestId('popular-books-chart')).toBeInTheDocument()\n    })\n  })\n\n  it('エラー時のエラーメッセージが表示される', async () => {\n    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {})\n    const mockAxios = require('axios')\n    mockAxios.get.mockRejectedValueOnce(new Error('データの取得に失敗しました'))\n\n    await act(async () => {\n      render(<Statistics />)\n    })\n\n    await waitFor(() => {\n      expect(screen.getByText('データの読み込みに失敗しました')).toBeInTheDocument()\n    })\n\n    mockConsoleError.mockRestore()\n  })\n\n  it('ローディング状態が正しく表示される', async () => {\n    render(<Statistics />)\n    \n    expect(screen.getByText('データを読み込み中...')).toBeInTheDocument()\n    \n    await waitFor(() => {\n      expect(screen.queryByText('データを読み込み中...')).not.toBeInTheDocument()\n    })\n  })\n\n  it('データ更新ボタンが機能する', async () => {\n    await act(async () => {\n      render(<Statistics />)\n    })\n\n    const refreshButton = screen.getByRole('button', { name: 'データ更新' })\n    fireEvent.click(refreshButton)\n\n    const mockAxios = require('axios')\n    expect(mockAxios.get).toHaveBeenCalledTimes(2) // 初期ロードと更新時\n  })\n})\n```"
+        }
+      ]
+    },
+    {
+      "id": "SCR-016",
+      "category": "決済システム",
+      "screenName": "支払管理画面",
+      "description": "貸出企業への支払い管理を行う画面",
+      "Screen components": "支払い一覧、振込設定、履歴表示",
+      "operatingProcedure": "1. 支払対象確認\n2. 支払処理実行\n3. 履歴確認",
+      "user": "システム管理者",
+      "accessRight": "ログインユーザー",
+      "fileName": "payments/manage.tsx",
+      "getData": "[{\"table\":\"billing_records\",\"items\":[\"*\"]}]",
+      "postData": "[{\"table\":\"billing_records\",\"items\":[\"status\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"PaymentManager.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-010",
+          "category": "決済システム",
+          "handleName": "貸出企業支払処理",
+          "description": "貸出企業への利用料支払いを一括処理",
+          "handleProcedure": "1. 支払対象の集計\n2. 振込データの作成\n3. 金融機関APIとの連携\n4. 振込処理の実行",
+          "fileName": "payments/process.ts",
+          "relatedScreen": "SCR-016",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport PaymentManage from '@/pages/payments/manage';\nimport '@testing-library/jest-dom';\nimport { jest } from '@jest/globals';\n\n// モックデータ\nconst mockPayments = [\n  {\n    id: '1',\n    companyId: 'comp-1', \n    amount: 10000,\n    status: '未処理',\n    dueDate: '2024-02-01'\n  },\n  {\n    id: '2', \n    companyId: 'comp-2',\n    amount: 20000,\n    status: '処理済',\n    dueDate: '2024-02-02'\n  }\n];\n\nconst mockBankSettings = {\n  bankName: 'テスト銀行',\n  branchCode: '001',\n  accountNumber: '1234567',\n  accountType: '普通'\n};\n\n// APIモック\njest.mock('axios');\nconst mockedAxios = axios as jest.Mocked<typeof axios>;\n\nmockedAxios.get.mockImplementation((url) => {\n  if (url.includes('/api/payments')) {\n    return Promise.resolve({ data: mockPayments });\n  }\n  if (url.includes('/api/bank-settings')) {\n    return Promise.resolve({ data: mockBankSettings });\n  }\n  return Promise.reject(new Error('Not found'));\n});\n\nmockedAxios.post.mockImplementation((url) => {\n  if (url.includes('/api/payments/process')) {\n    return Promise.resolve({ data: { success: true } });\n  }\n  return Promise.reject(new Error('Not found'));\n});\n\ndescribe('支払管理画面テスト', () => {\n  beforeEach(() => {\n    jest.clearAllMocks();\n  });\n\n  it('支払一覧が正しく表示される', async () => {\n    render(<PaymentManage />);\n    \n    await waitFor(() => {\n      expect(screen.getByText('¥10,000')).toBeInTheDocument();\n      expect(screen.getByText('¥20,000')).toBeInTheDocument();\n    });\n    \n    expect(screen.getByText('未処理')).toBeInTheDocument();\n    expect(screen.getByText('処理済')).toBeInTheDocument();\n  });\n\n  it('振込設定が正しく表示される', async () => {\n    render(<PaymentManage />);\n\n    await waitFor(() => {\n      expect(screen.getByText('テスト銀行')).toBeInTheDocument();\n      expect(screen.getByText('001')).toBeInTheDocument();\n      expect(screen.getByText('1234567')).toBeInTheDocument();\n    });\n  });\n\n  it('支払処理が実行できる', async () => {\n    render(<PaymentManage />);\n    \n    await waitFor(() => {\n      expect(screen.getByText('支払処理実行')).toBeInTheDocument();\n    });\n\n    const processButton = screen.getByText('支払処理実行');\n    await userEvent.click(processButton);\n\n    await waitFor(() => {\n      expect(mockedAxios.post).toHaveBeenCalledWith('/api/payments/process', expect.any(Object));\n    });\n\n    expect(screen.getByText('支払処理が完了しました')).toBeInTheDocument();\n  });\n\n  it('支払対象を選択できる', async () => {\n    render(<PaymentManage />);\n\n    await waitFor(() => {\n      const checkboxes = screen.getAllByRole('checkbox');\n      expect(checkboxes).toHaveLength(mockPayments.length);\n    });\n\n    const firstCheckbox = screen.getAllByRole('checkbox')[0];\n    await userEvent.click(firstCheckbox);\n    expect(firstCheckbox).toBeChecked();\n  });\n\n  it('エラー時にエラーメッセージが表示される', async () => {\n    mockedAxios.post.mockRejectedValueOnce(new Error('支払処理に失敗しました'));\n    \n    render(<PaymentManage />);\n    \n    const processButton = await screen.findByText('支払処理実行');\n    await userEvent.click(processButton);\n\n    await waitFor(() => {\n      expect(screen.getByText('支払処理に失敗しました')).toBeInTheDocument();\n    });\n  });\n\n  it('検索フィルターが機能する', async () => {\n    render(<PaymentManage />);\n\n    const searchInput = screen.getByPlaceholderText('企業名で検索');\n    await userEvent.type(searchInput, 'テスト企業');\n\n    await waitFor(() => {\n      expect(mockedAxios.get).toHaveBeenCalledWith(\n        expect.stringContaining('/api/payments?search=テスト企業')\n      );\n    });\n  });\n\n  it('ページネーションが機能する', async () => {\n    render(<PaymentManage />);\n\n    const nextPageButton = screen.getByRole('button', { name: '次のページ' });\n    await userEvent.click(nextPageButton);\n\n    await waitFor(() => {\n      expect(mockedAxios.get).toHaveBeenCalledWith(\n        expect.stringContaining('/api/payments?page=2')\n      );\n    });\n  });\n\n  it('支払状況でフィルタリングできる', async () => {\n    render(<PaymentManage />);\n\n    const statusSelect = screen.getByRole('combobox', { name: '支払状況' });\n    await userEvent.selectOptions(statusSelect, '未処理');\n\n    await waitFor(() => {\n      expect(mockedAxios.get).toHaveBeenCalledWith(\n        expect.stringContaining('/api/payments?status=未処理')\n      );\n    });\n  });\n\n  it('支払履歴が表示される', async () => {\n    render(<PaymentManage />);\n\n    const historyTab = screen.getByRole('tab', { name: '支払履歴' });\n    await userEvent.click(historyTab);\n\n    await waitFor(() => {\n      expect(mockedAxios.get).toHaveBeenCalledWith('/api/payments/history');\n    });\n  });\n});\n```"
+        }
+      ]
+    },
+    {
+      "id": "SCR-017",
+      "category": "蔵書管理",
+      "screenName": "バーコードスキャン画面",
+      "description": "書籍のバーコードをスキャンして登録する画面",
+      "Screen components": "カメラビュー、スキャン結果表示、確認ボタン",
+      "operatingProcedure": "1. カメラ起動\n2. バーコードスキャン\n3. 結果確認\n4. 登録画面へ遷移",
+      "user": "大企業（蔵書提供者）",
+      "accessRight": "ログインユーザー",
+      "fileName": "books/scan.tsx",
+      "getData": "[]",
+      "postData": "[]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"BarcodeScanner.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-006",
+          "category": "蔵書管理",
+          "handleName": "ISBNバーコード解析処理",
+          "description": "スキャンされたISBNバーコードから書籍情報を取得",
+          "handleProcedure": "1. バーコード画像の解析\n2. ISBN情報の抽出\n3. 外部書籍DBからの情報取得\n4. 書籍データの整形",
+          "fileName": "books/scan-isbn.ts",
+          "relatedScreen": "SCR-017",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react';\nimport { act } from 'react-dom/test-utils';\nimport BookScanPage from '@/pages/books/scan';\nimport '@testing-library/jest-dom';\nimport { jest } from '@jest/globals';\nimport userEvent from '@testing-library/user-event';\nimport { useRouter } from 'next/navigation';\n\n// モック\njest.mock('next/navigation', () => ({\n  useRouter: jest.fn(),\n}));\n\nconst mockRouter = {\n  push: jest.fn(),\n};\n\nconst mockScanResult = {\n  isbn: '9784123456789',\n  title: 'テスト書籍',\n  author: 'テスト著者',\n  publisher: 'テスト出版'\n};\n\ndescribe('BookScanPage', () => {\n  beforeEach(() => {\n    (useRouter as jest.Mock).mockReturnValue(mockRouter);\n    jest.clearAllMocks();\n  });\n\n  it('正しくレンダリングされること', () => {\n    render(<BookScanPage />);\n    \n    expect(screen.getByText('バーコードスキャン')).toBeInTheDocument();\n    expect(screen.getByTestId('camera-view')).toBeInTheDocument();\n    expect(screen.getByRole('button', { name: '確認' })).toBeInTheDocument();\n  });\n\n  it('カメラが起動していない場合エラーメッセージが表示されること', async () => {\n    render(<BookScanPage />);\n    \n    await waitFor(() => {\n      expect(screen.getByText('カメラへのアクセスを許可してください')).toBeInTheDocument();\n    });\n  });\n\n  it('バーコードスキャン成功時に結果が表示されること', async () => {\n    render(<BookScanPage />);\n\n    const scanButton = screen.getByRole('button', { name: 'スキャン開始' });\n    await userEvent.click(scanButton);\n\n    // スキャン成功イベントをシミュレート\n    act(() => {\n      const scannerComponent = screen.getByTestId('barcode-scanner');\n      fireEvent(scannerComponent, new CustomEvent('scan-success', { \n        detail: mockScanResult \n      }));\n    });\n\n    await waitFor(() => {\n      expect(screen.getByText(mockScanResult.title)).toBeInTheDocument();\n      expect(screen.getByText(mockScanResult.author)).toBeInTheDocument();\n    });\n  });\n\n  it('確認ボタンクリックで登録画面に遷移すること', async () => {\n    render(<BookScanPage />);\n\n    // スキャン結果を設定\n    act(() => {\n      const scannerComponent = screen.getByTestId('barcode-scanner');\n      fireEvent(scannerComponent, new CustomEvent('scan-success', { \n        detail: mockScanResult \n      }));\n    });\n\n    const confirmButton = screen.getByRole('button', { name: '確認' });\n    await userEvent.click(confirmButton);\n\n    expect(mockRouter.push).toHaveBeenCalledWith(`/books/register?isbn=${mockScanResult.isbn}`);\n  });\n\n  it('スキャンエラー時にエラーメッセージが表示されること', async () => {\n    render(<BookScanPage />);\n\n    act(() => {\n      const scannerComponent = screen.getByTestId('barcode-scanner');\n      fireEvent(scannerComponent, new CustomEvent('scan-error', { \n        detail: 'スキャンに失敗しました' \n      }));\n    });\n\n    await waitFor(() => {\n      expect(screen.getByText('スキャンに失敗しました')).toBeInTheDocument();\n    });\n  });\n\n  it('再スキャンボタンでスキャナーがリセットされること', async () => {\n    render(<BookScanPage />);\n\n    // 一度スキャン\n    act(() => {\n      const scannerComponent = screen.getByTestId('barcode-scanner');\n      fireEvent(scannerComponent, new CustomEvent('scan-success', { \n        detail: mockScanResult \n      }));\n    });\n\n    const rescanButton = screen.getByRole('button', { name: '再スキャン' });\n    await userEvent.click(rescanButton);\n\n    expect(screen.queryByText(mockScanResult.title)).not.toBeInTheDocument();\n    expect(screen.getByTestId('camera-view')).toBeInTheDocument();\n  });\n\n  it('キャンセルボタンでホーム画面に戻ること', async () => {\n    render(<BookScanPage />);\n\n    const cancelButton = screen.getByRole('button', { name: 'キャンセル' });\n    await userEvent.click(cancelButton);\n\n    expect(mockRouter.push).toHaveBeenCalledWith('/');\n  });\n});\n```"
+        }
+      ]
+    },
+    {
+      "id": "SCR-018",
+      "category": "決済システム",
+      "screenName": "決済設定画面",
+      "description": "システム全体の決済関連設定を行う画面",
+      "Screen components": "料金設定フォーム、決済方法設定、自動引き落とし設定",
+      "operatingProcedure": "1. 料金体系設定\n2. 決済方法選択\n3. 自動引き落とし設定\n4. 設定保存",
+      "user": "システム管理者",
+      "accessRight": "ログインユーザー",
+      "fileName": "settings/payment.tsx",
+      "getData": "[{\"table\":\"companies\",\"items\":[\"*\"]}]",
+      "postData": "[{\"table\":\"companies\",\"items\":[\"payment_settings\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"SettingsForm.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-004",
+          "category": "決済システム",
+          "handleName": "自動引き落とし処理",
+          "description": "登録された口座からの自動引き落とし処理を実行",
+          "handleProcedure": "1. 引き落とし対象の抽出\n2. 金融機関APIとの連携\n3. 引き落とし処理の実行\n4. 処理結果の記録",
+          "fileName": "billing/auto-payment.ts",
+          "relatedScreen": "SCR-018",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport PaymentSettings from '@/pages/settings/payment';\nimport '@testing-library/jest-dom';\n\n// モックの定義\nconst mockPaymentSettings = {\n  billing_rate: 100,\n  payment_methods: ['credit_card', 'bank_transfer'],\n  auto_withdrawal: true,\n  withdrawal_date: 25,\n  bank_account: {\n    bank_name: 'テスト銀行',\n    branch_name: 'テスト支店',\n    account_type: '普通',\n    account_number: '1234567'\n  }\n};\n\njest.mock('axios');\n\ndescribe('PaymentSettings', () => {\n  beforeEach(() => {\n    (axios.get as jest.Mock).mockResolvedValue({\n      data: mockPaymentSettings\n    });\n  });\n\n  test('初期表示時に設定データが読み込まれること', async () => {\n    render(<PaymentSettings />);\n    \n    await waitFor(() => {\n      expect(screen.getByDisplayValue('100')).toBeInTheDocument();\n      expect(screen.getByDisplayValue('テスト銀行')).toBeInTheDocument();\n      expect(screen.getByDisplayValue('25')).toBeInTheDocument();\n    });\n  });\n\n  test('料金設定の変更が正しく保存されること', async () => {\n    render(<PaymentSettings />);\n    \n    const rateInput = await screen.findByLabelText('基本料金');\n    await userEvent.clear(rateInput);\n    await userEvent.type(rateInput, '200');\n\n    const saveButton = screen.getByText('設定を保存');\n    await userEvent.click(saveButton);\n\n    expect(axios.post).toHaveBeenCalledWith('/api/settings/payment', expect.objectContaining({\n      billing_rate: 200\n    }));\n  });\n\n  test('決済方法の選択が正しく機能すること', async () => {\n    render(<PaymentSettings />);\n\n    const creditCardCheckbox = await screen.findByLabelText('クレジットカード');\n    const bankTransferCheckbox = screen.getByLabelText('銀行振込');\n\n    await userEvent.click(creditCardCheckbox);\n    \n    expect(creditCardCheckbox).not.toBeChecked();\n    expect(bankTransferCheckbox).toBeChecked();\n  });\n\n  test('自動引き落とし設定の切り替えが正しく機能すること', async () => {\n    render(<PaymentSettings />);\n\n    const autoWithdrawalToggle = await screen.findByLabelText('自動引き落とし');\n    await userEvent.click(autoWithdrawalToggle);\n\n    const withdrawalDateInput = screen.getByLabelText('引き落とし日');\n    expect(withdrawalDateInput).toBeDisabled();\n  });\n\n  test('銀行口座情報の入力が正しく機能すること', async () => {\n    render(<PaymentSettings />);\n\n    const bankNameInput = await screen.findByLabelText('銀行名');\n    const branchNameInput = screen.getByLabelText('支店名');\n    const accountNumberInput = screen.getByLabelText('口座番号');\n\n    await userEvent.clear(bankNameInput);\n    await userEvent.type(bankNameInput, '新規銀行');\n    await userEvent.clear(branchNameInput);\n    await userEvent.type(branchNameInput, '新規支店');\n    await userEvent.clear(accountNumberInput);\n    await userEvent.type(accountNumberInput, '7654321');\n\n    const saveButton = screen.getByText('設定を保存');\n    await userEvent.click(saveButton);\n\n    expect(axios.post).toHaveBeenCalledWith('/api/settings/payment', expect.objectContaining({\n      bank_account: {\n        bank_name: '新規銀行',\n        branch_name: '新規支店',\n        account_number: '7654321'\n      }\n    }));\n  });\n\n  test('入力値バリデーションが正しく機能すること', async () => {\n    render(<PaymentSettings />);\n\n    const rateInput = await screen.findByLabelText('基本料金');\n    await userEvent.clear(rateInput);\n    await userEvent.type(rateInput, '-100');\n\n    const saveButton = screen.getByText('設定を保存');\n    await userEvent.click(saveButton);\n\n    expect(screen.getByText('基本料金は0以上の数値を入力してください')).toBeInTheDocument();\n  });\n\n  test('保存失敗時にエラーメッセージが表示されること', async () => {\n    (axios.post as jest.Mock).mockRejectedValueOnce(new Error('保存に失敗しました'));\n    \n    render(<PaymentSettings />);\n\n    const saveButton = await screen.findByText('設定を保存');\n    await userEvent.click(saveButton);\n\n    expect(screen.getByText('設定の保存に失敗しました')).toBeInTheDocument();\n  });\n\n  test('設定変更後に確認メッセージが表示されること', async () => {\n    render(<PaymentSettings />);\n\n    const rateInput = await screen.findByLabelText('基本料金');\n    await userEvent.clear(rateInput);\n    await userEvent.type(rateInput, '300');\n\n    const saveButton = screen.getByText('設定を保存');\n    await userEvent.click(saveButton);\n\n    await waitFor(() => {\n      expect(screen.getByText('設定を保存しました')).toBeInTheDocument();\n    });\n  });\n});\n```"
+        }
+      ]
+    },
+    {
+      "id": "SCR-019",
+      "category": "検索・マッチング",
+      "screenName": "AIマッチング最適化画面",
+      "description": "AI推奨による最適な貸出先を表示する画面",
+      "Screen components": "マッチング結果一覧、適合度表示、詳細情報",
+      "operatingProcedure": "1. マッチング条件設定\n2. AI分析実行\n3. 推奨結果確認\n4. 詳細確認",
+      "user": "システム管理者",
+      "accessRight": "ログインユーザー",
+      "fileName": "matching/optimize.tsx",
+      "getData": "[{\"table\":\"companies\",\"items\":[\"*\"]},{\"table\":\"lending_records\",\"items\":[\"*\"]}]",
+      "postData": "[]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"MatchingResults.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-005",
+          "category": "検索・マッチング",
+          "handleName": "AIマッチング最適化処理",
+          "description": "貸出履歴データを基にAIによる最適なマッチング推奨を生成",
+          "handleProcedure": "1. 履歴データの収集\n2. AI分析モデルの適用\n3. マッチングスコアの計算\n4. 推奨結果の生成",
+          "fileName": "matching/optimize.ts",
+          "relatedScreen": "SCR-019",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react'\nimport { jest } from '@jest/globals'\nimport AIMatchingOptimize from '@/pages/matching/optimize'\nimport '@testing-library/jest-dom'\n\n// モックデータ\nconst mockMatchingResults = [\n  {\n    id: '1',\n    companyName: 'テスト企業A',\n    matchScore: 0.95,\n    recommendedBooks: [\n      { id: '1', title: 'テスト書籍1', author: '著者1' },\n      { id: '2', title: 'テスト書籍2', author: '著者2' }\n    ]\n  },\n  {\n    id: '2', \n    companyName: 'テスト企業B',\n    matchScore: 0.85,\n    recommendedBooks: [\n      { id: '3', title: 'テスト書籍3', author: '著者3' }\n    ]\n  }\n]\n\n// APIモック\njest.mock('axios')\nconst mockAxios = jest.mocked(axios)\n\ndescribe('AIMatchingOptimize', () => {\n  beforeEach(() => {\n    mockAxios.get.mockReset()\n    mockAxios.post.mockReset()\n  })\n\n  test('画面の初期表示が正しく行われる', async () => {\n    mockAxios.get.mockResolvedValueOnce({ data: mockMatchingResults })\n\n    render(<AIMatchingOptimize />)\n\n    expect(screen.getByText('AIマッチング最適化')).toBeInTheDocument()\n    expect(screen.getByRole('button', { name: 'マッチング分析実行' })).toBeInTheDocument()\n    expect(screen.getByLabelText('条件設定')).toBeInTheDocument()\n  })\n\n  test('マッチング分析を実行して結果が表示される', async () => {\n    mockAxios.post.mockResolvedValueOnce({ data: mockMatchingResults })\n\n    render(<AIMatchingOptimize />)\n\n    const analyzeButton = screen.getByRole('button', { name: 'マッチング分析実行' })\n    fireEvent.click(analyzeButton)\n\n    await waitFor(() => {\n      expect(screen.getByText('テスト企業A')).toBeInTheDocument()\n      expect(screen.getByText('95%')).toBeInTheDocument()\n      expect(screen.getByText('テスト書籍1')).toBeInTheDocument()\n    })\n  })\n\n  test('エラー時にエラーメッセージが表示される', async () => {\n    mockAxios.post.mockRejectedValueOnce(new Error('API Error'))\n\n    render(<AIMatchingOptimize />)\n\n    const analyzeButton = screen.getByRole('button', { name: 'マッチング分析実行' })\n    fireEvent.click(analyzeButton)\n\n    await waitFor(() => {\n      expect(screen.getByText('分析中にエラーが発生しました')).toBeInTheDocument()\n    })\n  })\n\n  test('条件設定の変更が正しく反映される', () => {\n    render(<AIMatchingOptimize />)\n\n    const minScoreInput = screen.getByLabelText('最低適合度')\n    fireEvent.change(minScoreInput, { target: { value: '0.8' } })\n\n    const maxResultsInput = screen.getByLabelText('表示件数')\n    fireEvent.change(maxResultsInput, { target: { value: '10' } })\n\n    expect(minScoreInput).toHaveValue('0.8')\n    expect(maxResultsInput).toHaveValue('10')\n  })\n\n  test('詳細表示ボタンをクリックすると詳細が表示される', async () => {\n    mockAxios.get.mockResolvedValueOnce({ data: mockMatchingResults })\n\n    render(<AIMatchingOptimize />)\n\n    const detailButton = screen.getByRole('button', { name: '詳細を表示' })\n    fireEvent.click(detailButton)\n\n    await waitFor(() => {\n      expect(screen.getByText('推奨書籍一覧')).toBeInTheDocument()\n      expect(screen.getByText('テスト書籍1')).toBeInTheDocument()\n      expect(screen.getByText('著者1')).toBeInTheDocument()\n    })\n  })\n\n  test('ソート機能が正しく動作する', async () => {\n    mockAxios.get.mockResolvedValueOnce({ data: mockMatchingResults })\n\n    render(<AIMatchingOptimize />)\n\n    const sortSelect = screen.getByLabelText('ソート順')\n    fireEvent.change(sortSelect, { target: { value: 'score_desc' } })\n\n    await waitFor(() => {\n      const companies = screen.getAllByTestId('company-name')\n      expect(companies[0]).toHaveTextContent('テスト企業A')\n      expect(companies[1]).toHaveTextContent('テスト企業B')\n    })\n  })\n\n  test('フィルター機能が正しく動作する', async () => {\n    mockAxios.get.mockResolvedValueOnce({ data: mockMatchingResults })\n\n    render(<AIMatchingOptimize />)\n\n    const filterInput = screen.getByLabelText('企業名フィルター')\n    fireEvent.change(filterInput, { target: { value: 'テスト企業A' } })\n\n    await waitFor(() => {\n      expect(screen.getByText('テスト企業A')).toBeInTheDocument()\n      expect(screen.queryByText('テスト企業B')).not.toBeInTheDocument()\n    })\n  })\n\n  test('ページネーションが正しく動作する', async () => {\n    mockAxios.get.mockResolvedValueOnce({ \n      data: {\n        results: mockMatchingResults,\n        totalPages: 2,\n        currentPage: 1\n      }\n    })\n\n    render(<AIMatchingOptimize />)\n\n    const nextPageButton = screen.getByRole('button', { name: '次のページ' })\n    fireEvent.click(nextPageButton)\n\n    expect(mockAxios.get).toHaveBeenCalledWith(\n      expect.stringContaining('page=2')\n    )\n  })\n})\n```"
+        }
+      ]
+    },
+    {
+      "id": "SCR-020",
+      "category": "配送管理",
+      "screenName": "配送手配画面",
+      "description": "書籍の配送手配を行う画面",
+      "Screen components": "配送依頼フォーム、配送業者選択、料金計算",
+      "operatingProcedure": "1. 配送内容入力\n2. 配送業者選択\n3. 料金確認\n4. 手配実行",
+      "user": "システム管理者",
+      "accessRight": "ログインユーザー",
+      "fileName": "shipping/arrange.tsx",
+      "getData": "[{\"table\":\"lending_records\",\"items\":[\"*\"]}]",
+      "postData": "[{\"table\":\"shipping_records\",\"items\":[\"*\"]}]",
+      "commonComponent": "[\"Header.tsx\",\"Sidebar.tsx\",\"ShippingForm.tsx\"]",
+      "relatedBackendHandles": [
+        {
+          "id": "BAC-003",
+          "category": "配送管理",
+          "handleName": "配送業者API連携処理",
+          "description": "外部配送業者APIと連携して配送手配を実行",
+          "handleProcedure": "1. 配送情報の検証\n2. 外部APIへのリクエスト生成\n3. 配送依頼の実行\n4. 追跡番号の取得と保存",
+          "fileName": "shipping/arrange.ts",
+          "relatedScreen": "SCR-020",
+          "relatedFrontendCode": "```typescript\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport '@testing-library/jest-dom';\nimport { jest } from '@jest/globals';\nimport ShippingArrangePage from '@/pages/shipping/arrange';\nimport axios from 'axios';\n\njest.mock('@/components/Header', () => {\n  return function MockHeader() {\n    return <div data-testid=\"mock-header\">Header</div>;\n  };\n});\n\njest.mock('@/components/Sidebar', () => {\n  return function MockSidebar() {\n    return <div data-testid=\"mock-sidebar\">Sidebar</div>;\n  };\n});\n\nconst mockShippingCarriers = [\n  { id: 1, name: 'ヤマト運輸', price: 800 },\n  { id: 2, name: '佐川急便', price: 750 },\n];\n\nconst mockLendingRecord = {\n  id: 'abc-123',\n  book: {\n    title: 'テスト書籍',\n    publisher: 'テスト出版'\n  },\n  borrower: {\n    name: 'テストユーザー',\n    address: '東京都渋谷区'\n  }\n};\n\ndescribe('配送手配画面', () => {\n  beforeEach(() => {\n    // APIモックのリセット\n    jest.clearAllMocks();\n    \n    // API レスポンスのモック\n    (axios.get as jest.Mock).mockResolvedValueOnce({ data: mockLendingRecord });\n    (axios.get as jest.Mock).mockResolvedValueOnce({ data: mockShippingCarriers });\n  });\n\n  it('画面の初期表示が正しく行われること', async () => {\n    render(<ShippingArrangePage />);\n\n    // ヘッダーとサイドバーが表示されていること\n    expect(screen.getByTestId('mock-header')).toBeInTheDocument();\n    expect(screen.getByTestId('mock-sidebar')).toBeInTheDocument();\n\n    // フォームの初期表示を確認\n    await waitFor(() => {\n      expect(screen.getByText('配送手配')).toBeInTheDocument();\n      expect(screen.getByText('テスト書籍')).toBeInTheDocument();\n      expect(screen.getByText('テストユーザー')).toBeInTheDocument();\n    });\n  });\n\n  it('配送業者選択で料金が更新されること', async () => {\n    render(<ShippingArrangePage />);\n\n    await waitFor(() => {\n      expect(screen.getByLabelText('配送業者')).toBeInTheDocument();\n    });\n\n    const carrierSelect = screen.getByLabelText('配送業者');\n    fireEvent.change(carrierSelect, { target: { value: '1' } });\n\n    await waitFor(() => {\n      expect(screen.getByText('800円')).toBeInTheDocument();\n    });\n  });\n\n  it('必須項目が未入力の場合エラーが表示されること', async () => {\n    render(<ShippingArrangePage />);\n\n    const submitButton = await screen.findByText('配送手配を実行');\n    fireEvent.click(submitButton);\n\n    await waitFor(() => {\n      expect(screen.getByText('配送業者を選択してください')).toBeInTheDocument();\n    });\n  });\n\n  it('配送手配が正常に完了すること', async () => {\n    (axios.post as jest.Mock).mockResolvedValueOnce({\n      data: {\n        trackingNumber: '1234-5678-90',\n        status: 'created'\n      }\n    });\n\n    render(<ShippingArrangePage />);\n\n    // 配送業者の選択\n    const carrierSelect = await screen.findByLabelText('配送業者');\n    fireEvent.change(carrierSelect, { target: { value: '1' } });\n\n    // 備考の入力\n    const notesInput = screen.getByLabelText('備考');\n    await userEvent.type(notesInput, 'テスト備考');\n\n    // 手配実行\n    const submitButton = screen.getByText('配送手配を実行');\n    fireEvent.click(submitButton);\n\n    await waitFor(() => {\n      expect(screen.getByText('配送手配が完了しました')).toBeInTheDocument();\n      expect(screen.getByText('追跡番号: 1234-5678-90')).toBeInTheDocument();\n    });\n  });\n\n  it('APIエラー時にエラーメッセージが表示されること', async () => {\n    (axios.post as jest.Mock).mockRejectedValueOnce(new Error('API Error'));\n\n    render(<ShippingArrangePage />);\n\n    // 配送業者の選択\n    const carrierSelect = await screen.findByLabelText('配送業者');\n    fireEvent.change(carrierSelect, { target: { value: '1' } });\n\n    // 手配実行\n    const submitButton = screen.getByText('配送手配を実行');\n    fireEvent.click(submitButton);\n\n    await waitFor(() => {\n      expect(screen.getByText('配送手配に失敗しました')).toBeInTheDocument();\n    });\n  });\n\n  it('キャンセルボタンクリックで確認ダイアログが表示されること', async () => {\n    render(<ShippingArrangePage />);\n\n    const cancelButton = await screen.findByText('キャンセル');\n    fireEvent.click(cancelButton);\n\n    expect(screen.getByText('入力内容が破棄されますがよろしいですか？')).toBeInTheDocument();\n  });\n\n  it('住所情報の自動入力が機能すること', async () => {\n    render(<ShippingArrangePage />);\n\n    const zipCodeInput = await screen.findByLabelText('郵便番号');\n    await userEvent.type(zipCodeInput, '1500013');\n\n    await waitFor(() => {\n      expect(screen.getByLabelText('住所').getAttribute('value')).toBe('東京都渋谷区恵比寿');\n    });\n  });\n});\n```"
+        }
+      ]
+    }
+  ]
+}

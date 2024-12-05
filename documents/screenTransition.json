@@ -1,0 +1,21 @@
+{
+  "key": "screenTransition",
+  "value": [
+    {
+      "id": "蔵書管理",
+      "value": "{\n    \"mermaid\": \"graph LR\\n    Login[ログイン画面] --> Home[ホーム画面]\\n    \\n    Home --> BookReg[蔵書登録画面]\\n    Home --> BookList[蔵書一覧画面]\\n    Home --> BookScan[バーコードスキャン画面]\\n    Home --> BookCheck[蔵書点検画面]\\n    Home --> DamageReport[破損紛失報告画面]\\n    \\n    BookList --> BookDetail[蔵書詳細画面]\\n    BookDetail --> BookEdit[蔵書情報編集画面]\\n    BookDetail --> StatusUpdate[状態更新画面]\\n    \\n    BookScan --> BookReg\\n    \\n    BookCheck --> CheckReport[点検結果画面]\\n    \\n    DamageReport --> CompensationFlow[補償手続き画面]\\n    \\n    BookReg --> RegComplete[登録完了画面]\\n    BookEdit --> EditComplete[更新完了画面]\\n    \\n    RegComplete --> BookList\\n    EditComplete --> BookList\\n    CheckReport --> BookList\\n    CompensationFlow --> Home\"\n}"
+    },
+    {
+      "id": "検索・マッチング",
+      "value": "{\n    \"mermaid\": \"graph LR\\n    Login[ログイン画面] --> Home[ホーム画面]\\n    Home --> Search[蔵書検索画面]\\n    Home --> Recommend[AIレコメンド画面]\\n    \\n    Search --> SearchResult[検索結果一覧画面]\\n    Recommend --> SearchResult\\n    \\n    SearchResult --> BookDetail[蔵書詳細画面]\\n    BookDetail --> LoanRequest[貸出リクエスト画面]\\n    LoanRequest --> RequestConfirm[リクエスト確認画面]\\n    RequestConfirm --> RequestComplete[リクエスト完了画面]\\n    \\n    Home --> RequestList[リクエスト一覧画面]\\n    RequestList --> RequestDetail[リクエスト詳細画面]\\n    RequestDetail --> ApprovalScreen[貸出承認画面]\\n    ApprovalScreen --> ApprovalComplete[承認完了画面]\\n    \\n    Home --> Stats[利用統計画面]\\n    Stats --> AnalysisReport[分析レポート画面]\\n    \\n    Home --> MatchingList[AIマッチング最適化画面]\\n    MatchingList --> MatchingDetail[マッチング詳細画面]\"\n}"
+    },
+    {
+      "id": "配送管理",
+      "value": "{\n    \"mermaid\": \"graph LR\\n    Login[ログイン画面] --> Menu[メインメニュー]\\n    Menu --> DeliveryList[配送管理一覧]\\n    \\n    DeliveryList --> DeliveryRequest[配送依頼画面]\\n    DeliveryList --> TrackingStatus[配送状況確認画面]\\n    DeliveryList --> ReturnNotice[返却通知一覧画面]\\n    DeliveryList --> ReturnRequest[返却手配画面]\\n    \\n    DeliveryRequest --> DeliveryConfirm[配送依頼確認画面]\\n    DeliveryConfirm --> DeliveryComplete[配送依頼完了画面]\\n    \\n    TrackingStatus --> TrackingDetail[配送状況詳細画面]\\n    \\n    ReturnNotice --> NoticeDetail[返却通知詳細画面]\\n    ReturnNotice --> NoticeEdit[通知設定画面]\\n    \\n    ReturnRequest --> ReturnConfirm[返却手配確認画面]\\n    ReturnConfirm --> ReturnComplete[返却手配完了画面]\\n    \\n    subgraph 配送状況管理\\n        TrackingStatus\\n        TrackingDetail\\n    end\\n    \\n    subgraph 返却管理\\n        ReturnNotice\\n        ReturnRequest\\n        NoticeDetail\\n        NoticeEdit\\n        ReturnConfirm\\n        ReturnComplete\\n    end\"\n}"
+    },
+    {
+      "id": "決済システム",
+      "value": "{\n    \"mermaid\": \"graph LR\\n    Login[ログイン画面] --> Dashboard[決済管理ダッシュボード]\\n    \\n    Dashboard --> RateCalc[料金計算画面]\\n    Dashboard --> Billing[請求書管理画面]\\n    Dashboard --> Payment[支払管理画面]\\n    Dashboard --> Config[決済設定画面]\\n    \\n    RateCalc --> CalcDetail[料金明細画面]\\n    RateCalc --> RateList[料金表設定画面]\\n    \\n    Billing --> InvoiceList[請求書一覧画面]\\n    Billing --> InvoiceDetail[請求書詳細画面]\\n    Billing --> AutoWithdraw[自動引落設定画面]\\n    \\n    Payment --> PaymentList[支払一覧画面]\\n    Payment --> PaymentDetail[支払詳細画面]\\n    Payment --> BankSetting[振込先口座設定画面]\\n    \\n    Config --> CompanyConfig[企業別料金設定画面]\\n    Config --> WithdrawConfig[引落設定画面]\\n    Config --> PaymentConfig[支払設定画面]\"\n}"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "key": "sequenceDiagram",
+  "value": [
+    {
+      "id": "蔵書管理",
+      "value": "{\n    \"mermaid\": \"sequenceDiagram\\n    User->>Frontend: 蔵書登録画面を開く\\n    Frontend->>Backend: 蔵書登録画面データ要求\\n    Backend->>Frontend: 画面データ送信\\n    Frontend->>User: 登録フォーム表示\\n    User->>Frontend: バーコードスキャン実行\\n    Frontend->>Backend: ISBN情報解析リクエスト\\n    Backend->>DB: ISBN情報検索\\n    DB->>Backend: 書籍基本情報\\n    Backend->>Frontend: 書籍情報送信\\n    Frontend->>User: 書籍情報表示\\n    User->>Frontend: 貸出条件入力\\n    Frontend->>Backend: 蔵書登録リクエスト\\n    Backend->>DB: 蔵書情報保存\\n    DB->>Backend: 保存完了通知\\n    Backend->>Frontend: 登録完了レスポンス\\n    Frontend->>User: 完了通知表示\"\n}"
+    },
+    {
+      "id": "検索・マッチング",
+      "value": "{\n    \"mermaid\": \"sequenceDiagram\\n    User->>Frontend: 検索条件入力\\n    Frontend->>Backend: 検索リクエスト送信\\n    Backend->>DB: 蔵書データ取得クエリ\\n    DB-->>Backend: 蔵書データ返却\\n    Backend->>Backend: AI分析処理実行\\n    Backend->>DB: 利用履歴データ取得\\n    DB-->>Backend: 利用履歴データ返却\\n    Backend->>Backend: レコメンド生成\\n    Backend-->>Frontend: 検索結果とレコメンド返却\\n    Frontend-->>User: 結果表示\\n    User->>Frontend: 貸出リクエスト\\n    Frontend->>Backend: リクエスト情報送信\\n    Backend->>DB: リクエスト情報保存\\n    DB-->>Backend: 保存完了通知\\n    Backend->>Backend: マッチング最適化分析\\n    Backend-->>Frontend: リクエスト受付完了通知\\n    Frontend-->>User: 完了メッセージ表示\"\n}"
+    },
+    {
+      "id": "配送管理",
+      "value": "{\n    \"mermaid\": \"sequenceDiagram\\n    User->>Frontend: 配送手配画面を開く\\n    Frontend->>Backend: 配送手配データを要求\\n    Backend->>DB: 貸出レコード取得\\n    DB-->>Backend: 貸出データ返却\\n    Backend-->>Frontend: 配送手配データ返却\\n    Frontend-->>User: 配送手配フォーム表示\\n    User->>Frontend: 配送情報入力と手配実行\\n    Frontend->>Backend: 配送手配リクエスト送信\\n    Backend->>配送業者API: 配送依頼作成\\n    配送業者API-->>Backend: 追跡番号発行\\n    Backend->>DB: 配送記録保存\\n    DB-->>Backend: 保存完了\\n    Backend-->>Frontend: 配送手配完了通知\\n    Frontend-->>User: 追跡番号と完了メッセージ表示\\n    User->>Frontend: 配送状況確認リクエスト\\n    Frontend->>Backend: 追跡情報要求\\n    Backend->>配送業者API: 配送状況照会\\n    配送業者API-->>Backend: 現在の配送状況\\n    Backend-->>Frontend: 配送状況データ返却\\n    Frontend-->>User: 配送状況表示\"\n}"
+    },
+    {
+      "id": "決済システム",
+      "value": "{\n    \"mermaid\": \"sequenceDiagram\\n    actor User\\n    participant Frontend\\n    participant Backend\\n    participant DB\\n    User->>Frontend: 料金計算画面を開く\\n    Frontend->>Backend: 料金計算リクエスト送信\\n    Backend->>DB: 貸出履歴データ取得\\n    DB-->>Backend: 貸出履歴返却\\n    Backend->>DB: 料金体系情報取得\\n    DB-->>Backend: 料金体系情報返却\\n    Backend->>Backend: 利用料金計算処理\\n    Backend-->>Frontend: 料金計算結果返却\\n    Frontend-->>User: 料金明細表示\\n    User->>Frontend: 請求書発行指示\\n    Frontend->>Backend: 請求書発行リクエスト\\n    Backend->>DB: 企業情報取得\\n    DB-->>Backend: 企業情報返却\\n    Backend->>Backend: PDF請求書生成\\n    Backend->>DB: 請求書データ保存\\n    DB-->>Backend: 保存完了通知\\n    Backend-->>Frontend: 請求書PDF送信\\n    Frontend-->>User: 請求書表示\\n    Backend->>Backend: 自動引き落とし処理実行\\n    Backend->>DB: 口座情報取得\\n    DB-->>Backend: 口座情報返却\\n    Backend->>Backend: 引き落とし処理\\n    Backend->>DB: 引き落とし結果保存\\n    DB-->>Backend: 保存完了通知\\n    Backend->>Frontend: 処理結果通知\\n    Frontend-->>User: 結果表示\"\n}"
+    }
+  ]
+}

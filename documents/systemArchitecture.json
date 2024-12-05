@@ -1,0 +1,6 @@
+{
+  "key": "systemArchitecture",
+  "value": {
+    "mermaid": "graph TD\n    subgraph Frontend\n        subgraph 企業ユーザー\n            UI1[蔵書提供企業UI]\n            UI2[蔵書利用企業UI]\n        end\n        subgraph 管理者\n            UI3[システム管理者UI]\n            UI4[カスタマーサポートUI]\n        end\n    end\n\n    subgraph Backend\n        API[APIサーバー]\n        AUTH[認証サービス]\n        MATCH[AIマッチングエンジン]\n        PAY[決済処理サービス]\n        SHIP[配送管理サービス]\n        SEARCH[検索エンジン]\n    end\n\n    subgraph Database\n        DB1[(ユーザーDB)]\n        DB2[(蔵書DB)]\n        DB3[(取引DB)]\n        DB4[(決済DB)]\n    end\n\n    subgraph External\n        EXT1[決済代行サービス]\n        EXT2[配送業者API]\n        EXT3[ISBN情報サービス]\n    end\n\n    UI1 --> API\n    UI2 --> API\n    UI3 --> API\n    UI4 --> API\n\n    API --> AUTH\n    API --> MATCH\n    API --> PAY\n    API --> SHIP\n    API --> SEARCH\n\n    AUTH --> DB1\n    MATCH --> DB2\n    PAY --> DB4\n    SHIP --> DB3\n    SEARCH --> DB2\n\n    PAY --> EXT1\n    SHIP --> EXT2\n    API --> EXT3"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "key": "erDiagram",
+  "value": {
+    "mermaid": "erDiagram\n    companies {\n        uuid id PK\n        text name\n        text type\n        jsonb address\n        jsonb contact\n    }\n    books {\n        uuid id PK\n        uuid company_id FK\n        text isbn\n        text title\n        text author\n        text publisher\n        jsonb lending_conditions\n        text status\n    }\n    lending_records {\n        uuid id PK\n        uuid book_id FK\n        uuid borrower_id FK\n        timestamp lending_date\n        timestamp return_due_date\n        timestamp actual_return_date\n        text status\n    }\n    shipping_records {\n        uuid id PK\n        uuid lending_record_id FK\n        text type\n        text tracking_number\n        text status\n    }\n    billing_records {\n        uuid id PK\n        uuid company_id FK\n        date billing_month\n        integer amount\n        jsonb details\n    }\n    companies ||--o{ books : owns\n    books ||--o{ lending_records : has\n    companies ||--o{ lending_records : borrows\n    lending_records ||--o{ shipping_records : includes\n    companies ||--o{ billing_records : receives"
+  }
+}

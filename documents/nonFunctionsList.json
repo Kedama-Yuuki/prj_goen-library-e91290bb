@@ -1,0 +1,65 @@
+{
+  "key": "nonFunctionsList",
+  "value": [
+    {
+      "id": "NON-001",
+      "category": "性能・可用性",
+      "non_function_name": "システム稼働時間",
+      "description": "24時間365日のサービス提供。計画メンテナンス時を除き、99.9%以上の稼働率を確保する"
+    },
+    {
+      "id": "NON-002",
+      "category": "性能・可用性",
+      "non_function_name": "レスポンス時間",
+      "description": "検索機能の応答時間は3秒以内、一般的な画面遷移は2秒以内を目標とする"
+    },
+    {
+      "id": "NON-003",
+      "category": "セキュリティ",
+      "non_function_name": "アクセス制御",
+      "description": "ユーザー認証、企業認証を必須とし、権限に応じた機能制限を実装する"
+    },
+    {
+      "id": "NON-004",
+      "category": "セキュリティ",
+      "non_function_name": "データ保護",
+      "description": "企業情報、取引データは暗号化して保存。通信もSSL/TLS暗号化を実施"
+    },
+    {
+      "id": "NON-005",
+      "category": "拡張性",
+      "non_function_name": "システムスケーラビリティ",
+      "description": "ユーザー数、取引量の増加に応じて柔軟にシステムリソースを拡張可能な設計とする"
+    },
+    {
+      "id": "NON-006",
+      "category": "保守性",
+      "non_function_name": "バックアップ体制",
+      "description": "データベースの完全バックアップを日次で実施、差分バックアップを1時間ごとに実施"
+    },
+    {
+      "id": "NON-007",
+      "category": "信頼性",
+      "non_function_name": "障害復旧",
+      "description": "システム障害発生時のRPO（目標復旧地点）は1時間以内、RTO（目標復旧時間）は4時間以内"
+    },
+    {
+      "id": "NON-008",
+      "category": "運用性",
+      "non_function_name": "監視体制",
+      "description": "システムの稼働状況、性能指標、エラー発生をリアルタイムで監視し、異常検知時は即時通知"
+    },
+    {
+      "id": "NON-009",
+      "category": "性能・可用性",
+      "non_function_name": "同時接続数",
+      "description": "平常時1000ユーザー、ピーク時2000ユーザーの同時接続に対応"
+    },
+    {
+      "id": "NON-010",
+      "category": "移植性",
+      "non_function_name": "クロスプラットフォーム対応",
+      "description": "主要なWebブラウザ（Chrome、Firefox、Safari、Edge）での動作保証"
+    }
+  ]
+}

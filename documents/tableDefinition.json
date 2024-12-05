@@ -1,0 +1,305 @@
+{
+  "key": "tableDefinition",
+  "value": [
+    {
+      "id": "TAB-001",
+      "table": "companies",
+      "column": "id",
+      "dataType": "uuid",
+      "regulation": "PRIMARY KEY",
+      "defaultValue": "gen_random_uuid()",
+      "foreignKey": "",
+      "description": "企業ID"
+    },
+    {
+      "id": "TAB-002",
+      "table": "companies",
+      "column": "name",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "企業名"
+    },
+    {
+      "id": "TAB-003",
+      "table": "companies",
+      "column": "type",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "'borrower'",
+      "foreignKey": "",
+      "description": "企業種別（lender: 貸出企業, borrower: 利用企業）"
+    },
+    {
+      "id": "TAB-004",
+      "table": "companies",
+      "column": "address",
+      "dataType": "jsonb",
+      "regulation": "NOT NULL",
+      "defaultValue": "{\"postal_code\": \"\", \"prefecture\": \"\", \"city\": \"\", \"street\": \"\", \"building\": \"\"}",
+      "foreignKey": "",
+      "description": "所在地情報"
+    },
+    {
+      "id": "TAB-005",
+      "table": "companies",
+      "column": "contact",
+      "dataType": "jsonb",
+      "regulation": "NOT NULL",
+      "defaultValue": "{\"email\": \"\", \"phone\": \"\", \"department\": \"\", \"person\": \"\"}",
+      "foreignKey": "",
+      "description": "連絡先情報"
+    },
+    {
+      "id": "TAB-006",
+      "table": "books",
+      "column": "id",
+      "dataType": "uuid",
+      "regulation": "PRIMARY KEY",
+      "defaultValue": "gen_random_uuid()",
+      "foreignKey": "",
+      "description": "書籍ID"
+    },
+    {
+      "id": "TAB-007",
+      "table": "books",
+      "column": "company_id",
+      "dataType": "uuid",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "companies.id",
+      "description": "所有企業ID"
+    },
+    {
+      "id": "TAB-008",
+      "table": "books",
+      "column": "isbn",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "ISBN"
+    },
+    {
+      "id": "TAB-009",
+      "table": "books",
+      "column": "title",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "書籍名"
+    },
+    {
+      "id": "TAB-010",
+      "table": "books",
+      "column": "author",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "著者"
+    },
+    {
+      "id": "TAB-011",
+      "table": "books",
+      "column": "publisher",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "出版社"
+    },
+    {
+      "id": "TAB-012",
+      "table": "books",
+      "column": "lending_conditions",
+      "dataType": "jsonb",
+      "regulation": "NOT NULL",
+      "defaultValue": "{\"max_period\": 14, \"fee_per_day\": 100, \"deposit\": 0, \"restrictions\": []}",
+      "foreignKey": "",
+      "description": "貸出条件"
+    },
+    {
+      "id": "TAB-013",
+      "table": "books",
+      "column": "status",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "'available'",
+      "foreignKey": "",
+      "description": "状態（available: 利用可能, lending: 貸出中, maintenance: メンテナンス中, lost: 紛失）"
+    },
+    {
+      "id": "TAB-014",
+      "table": "lending_records",
+      "column": "id",
+      "dataType": "uuid",
+      "regulation": "PRIMARY KEY",
+      "defaultValue": "gen_random_uuid()",
+      "foreignKey": "",
+      "description": "貸出記録ID"
+    },
+    {
+      "id": "TAB-015",
+      "table": "lending_records",
+      "column": "book_id",
+      "dataType": "uuid",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "books.id",
+      "description": "書籍ID"
+    },
+    {
+      "id": "TAB-016",
+      "table": "lending_records",
+      "column": "borrower_id",
+      "dataType": "uuid",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "companies.id",
+      "description": "借り手企業ID"
+    },
+    {
+      "id": "TAB-017",
+      "table": "lending_records",
+      "column": "lending_date",
+      "dataType": "timestamp with time zone",
+      "regulation": "NOT NULL",
+      "defaultValue": "CURRENT_TIMESTAMP",
+      "foreignKey": "",
+      "description": "貸出日時"
+    },
+    {
+      "id": "TAB-018",
+      "table": "lending_records",
+      "column": "return_due_date",
+      "dataType": "timestamp with time zone",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "返却予定日時"
+    },
+    {
+      "id": "TAB-019",
+      "table": "lending_records",
+      "column": "actual_return_date",
+      "dataType": "timestamp with time zone",
+      "regulation": "",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "実際の返却日時"
+    },
+    {
+      "id": "TAB-020",
+      "table": "lending_records",
+      "column": "status",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "'active'",
+      "foreignKey": "",
+      "description": "状態（active: 貸出中, returned: 返却済み, overdue: 延滞中）"
+    },
+    {
+      "id": "TAB-021",
+      "table": "shipping_records",
+      "column": "id",
+      "dataType": "uuid",
+      "regulation": "PRIMARY KEY",
+      "defaultValue": "gen_random_uuid()",
+      "foreignKey": "",
+      "description": "配送記録ID"
+    },
+    {
+      "id": "TAB-022",
+      "table": "shipping_records",
+      "column": "lending_record_id",
+      "dataType": "uuid",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "lending_records.id",
+      "description": "貸出記録ID"
+    },
+    {
+      "id": "TAB-023",
+      "table": "shipping_records",
+      "column": "type",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "配送種別（delivery: 配送, return: 返却）"
+    },
+    {
+      "id": "TAB-024",
+      "table": "shipping_records",
+      "column": "tracking_number",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "追跡番号"
+    },
+    {
+      "id": "TAB-025",
+      "table": "shipping_records",
+      "column": "status",
+      "dataType": "text",
+      "regulation": "NOT NULL",
+      "defaultValue": "'preparing'",
+      "foreignKey": "",
+      "description": "配送状態（preparing: 準備中, in_transit: 配送中, delivered: 配送完了）"
+    },
+    {
+      "id": "TAB-026",
+      "table": "billing_records",
+      "column": "id",
+      "dataType": "uuid",
+      "regulation": "PRIMARY KEY",
+      "defaultValue": "gen_random_uuid()",
+      "foreignKey": "",
+      "description": "請求記録ID"
+    },
+    {
+      "id": "TAB-027",
+      "table": "billing_records",
+      "column": "company_id",
+      "dataType": "uuid",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "companies.id",
+      "description": "請求先企業ID"
+    },
+    {
+      "id": "TAB-028",
+      "table": "billing_records",
+      "column": "billing_month",
+      "dataType": "date",
+      "regulation": "NOT NULL",
+      "defaultValue": "",
+      "foreignKey": "",
+      "description": "請求対象月"
+    },
+    {
+      "id": "TAB-029",
+      "table": "billing_records",
+      "column": "amount",
+      "dataType": "integer",
+      "regulation": "NOT NULL",
+      "defaultValue": "0",
+      "foreignKey": "",
+      "description": "請求金額"
+    },
+    {
+      "id": "TAB-030",
+      "table": "billing_records",
+      "column": "details",
+      "dataType": "jsonb",
+      "regulation": "NOT NULL",
+      "defaultValue": "{\"lending_fees\": [], \"shipping_fees\": [], \"other_fees\": []}",
+      "foreignKey": "",
+      "description": "請求明細"
+    }
+  ]
+}
